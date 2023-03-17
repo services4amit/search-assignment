@@ -410,7 +410,6 @@ app.use("/search", async (req, res) => {
       stack: err.stack,
     });
 
-    errorHandler(err, res);
   }
 });
 
