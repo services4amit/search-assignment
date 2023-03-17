@@ -2,7 +2,7 @@
     "personId": "1",
     "gender": "MALE",
     "dob": "2007-01-01", 
-    "dod": "2007-01-01", 
+    "dod": "2027-01-01", 
     "name": {
       "first": "A",
       "middle": "A",
@@ -10,9 +10,46 @@
     },
     "addresses": [
       {
-        "from": "2007-01-01", 
-        "to": "2007-01-01", 
-        "addressId": "123"
+          "from" : "2007-01-01",
+          "to" : "2008-01-01",
+          "addressId" : "1"
+      },
+      {
+          "from" : "2017-01-01",
+          "to" : "2018-01-01",
+          "addressId" : "2"
+      },
+      {
+          "from" : "2023-01-01",
+          "to" : null,
+          "addressId" : "4"
       }
-    ]
+  ]
+  },{
+    "personId": "2",
+    "gender": "MALE",
+    "dob": "2007-01-01", 
+    "dod": "", 
+    "name": {
+      "first": "B",
+      "middle": "B",
+      "last": "B"
+    },
+    "addresses": [
+      {
+          "from" : "2007-01-01",
+          "to" : "2007-01-01",
+          "addressId" : "1"
+      },
+      {
+          "from" : "2017-01-01",
+          "to" : "2017-01-01",
+          "addressId" : "2"
+      },
+      {
+          "from" : "2023-01-01",
+          "to" : null,
+          "addressId" : "15"
+      }
+  ]
   }]
