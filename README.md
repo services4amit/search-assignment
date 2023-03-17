@@ -1,11 +1,33 @@
 # search-assignment
 
-start cmd: npm start
+
+Design:
+
+Database:  MongoDB. We can create indexes on the fields that will be used for searching, such as zipCode, addressIds, from and to.
+We can use pagination to limit the number of results returned by the API endpoint. 
+We can use the skip and limit parameters to paginate the results.
+
+For the search assignment 2 collections are created:
+
+--adds
+
+--persons
+
+Local DB:"mongodb://localhost:27017/local"
+
+
+Project setup:
+
+npm install
+
+ npm start
 
 
 
 
-Request body check:
+
+Request body validation check:
+
 from must be on or after 1950-01-01:
 
 http://localhost:3100/search?to=2022-01-01&status=@dead&zipCodes=121 
