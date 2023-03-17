@@ -1,5 +1,15 @@
 [{
-    "addressId": "123",
-    "zipCode": "121",
-    "street": "abc"
-  }]
+  "addressId" : "1",
+  "zipCode" : "121",
+  "street" : "abc"
+},
+{
+  "addressId" : "2",
+  "zipCode" : "122",
+  "street" : "xyz"
+},
+{
+  "addressId" : "4",
+  "zipCode" : "144",
+  "street" : "mnp"
+}]
