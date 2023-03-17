@@ -1,16 +1,12 @@
 var express = require('express');
 var path = require('path');
-
-
-
 const mongoose = require("mongoose");
-
+const {json}=require("express")
 const { persons, adds } = require("./models");
 const person_data = require("./person.json");
 const address_data = require("./addresses.json");
-const errorHandler = require("./errorHandler");
 const AppError = require("./appError");
-var usersRouter = require('./routes/users');
+
 
 var app = express();
 
@@ -21,22 +17,9 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
 
-app.use('/users', usersRouter);
-
-
-
-
-const mongoose = require("mongoose");
-
-const { persons, adds } = require("./models");
-const person_data = require("./person.json");
-const address_data = require("./addresses.json");
-const errorHandler = require("./errorHandler");
-const AppError = require("./appError");
-var app = express();
 
 var mongoconnect = async () => {
-
+ 
   try {
     await mongoose.connect("mongodb://localhost:27017/local");
     console.log("Connected");
@@ -45,7 +28,7 @@ var mongoconnect = async () => {
   }
 };
 
-mongoconnect();
+ mongoconnect();
 
 // Create collection of Model
 persons.createCollection().then(function (collection) {
@@ -92,12 +75,7 @@ app.use("/search", async (req, res) => {
     zipCodes = zipCodes ? [...zipCodes.split(",")] : [];
 
     console.log(formatted_date, to, from);
-    // zipCode, addressIds, from and to
-    //test
-    // addressIds = ["1", "2", "4"];
-    // zipCodes = ["121", "122", "144"];
-    // from = "2007-01-01";
-    // to = "2026-02-01";
+    
 
     let data;
     if (addressIds.length > 0) {
