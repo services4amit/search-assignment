@@ -4,7 +4,7 @@ start cmd: npm start
 
 
 
-from must be on or after 1950-01-01:
+##from must be on or after 1950-01-01:
 http://localhost:3100/search?to=2022-01-01&status=@dead&zipCodes=121
 http://localhost:3100/search?from=1000-01-01&to=2022-01-01&status=@dead&zipCodes=121
 
