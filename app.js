@@ -239,7 +239,7 @@ app.use("/search", async (req, res) => {
               },
             },
 
-            isAlive: { $cond: ["$dod", false, true] },
+            isAlive: { $cond: [{ $ne: ["$dod", ""] }, false, true] },
             addresses: {
               $map: {
                 input: "$addresses",
@@ -326,8 +326,8 @@ app.use("/search", async (req, res) => {
                 unit: "year",
               },
             },
+            isAlive: { $cond: [{ $ne: ["$temp.dod", ""] }, false, true] },
 
-            isAlive: { $cond: ["$temp.dod", false, true] },
             addresses: {
               $filter: {
                 input: "$temp.addresses",
