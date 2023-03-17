@@ -99,212 +99,326 @@ app.use("/search", async (req, res) => {
     // from = "2007-01-01";
     // to = "2026-02-01";
 
-    let filter_add_cond = [
-      { $gte: ["$$address.from", from] },
-      {
-        $and: [
-          {
-            $cond: {
-              if: {
-                $and: [
-                  { $eq: ["$$address.to", null] },
-                  { $gte: [to, "$$address.from"] },
-                ],
-              },
-              then: {
-                $cond: {
-                  if: { $lte: [to, formatted_date] },
-                  then: { $lte: ["$$address.to", to] },
-                  else: { $ne: ["$$address.to", null] },
-                },
-              },
-              else: {
-                $and: [
-                  { $lte: ["$$address.to", to] },
-                  { $ne: ["$$address.to", null] },
-                ],
-              },
-            },
-          },
-        ],
-      },
-      ,
-    ];
-
+    let data;
     if (addressIds.length > 0) {
-      filter_add_cond = [
-        { $gte: ["$$address.from", from] },
+      data = await persons.aggregate([
         {
-          $and: [
-            {
-              $cond: {
-                if: {
-                  $and: [
-                    { $eq: ["$$address.to", null] },
-                    { $gte: [to, "$$address.from"] },
-                  ],
-                },
-                then: {
-                  $cond: {
-                    if: { $lte: [to, formatted_date] },
-                    then: { $lte: ["$$address.to", to] },
-                    else: { $ne: ["$$address.to", null] },
+          $match: {
+            $expr: {
+              $switch: {
+                branches: [
+                  {
+                    case: { $eq: [status, "@dead"] },
+                    then: { $ne: ["$dod", ""] },
                   },
-                },
-                else: {
+                  {
+                    case: { $eq: [status, "@alive"] },
+                    then: { $eq: ["$dod", ""] },
+                  },
+                ],
+                default: "Any",
+              },
+            },
+          },
+        },
+        {
+          $project: {
+            _id: 0,
+            personId: 1,
+            name: 1,
+            dob: 1,
+            dod: 1,
+            addresses: {
+              $filter: {
+                input: "$addresses",
+                as: "address",
+                cond: {
                   $and: [
-                    { $lte: ["$$address.to", to] },
-                    { $ne: ["$$address.to", null] },
-                  ],
-                },
-              },
-            },
-          ],
-        },
-        { $in: ["$$address.addressId", addressIds] },
-      ];
-    }
-
-    let add_table_match_cond = {
-      $match: {
-        $expr: {
-          $in: ["$addressId", "$$cart.addressId"],
-        },
-      },
-    };
-
-    if (zipCodes.length > 0) {
-      add_table_match_cond = {
-        $match: {
-          zipCode: { $in: zipCodes },
-
-          $expr: {
-            $in: ["$addressId", "$$cart.addressId"],
-          },
-        },
-      };
-    }
-
-    let data = await persons.aggregate([
-      {
-        $match: {
-          $expr: {
-            $switch: {
-              branches: [
-                {
-                  case: { $eq: [status, "@dead"] },
-                  then: { $ne: ["$dod", ""] },
-                },
-                {
-                  case: { $eq: [status, "@alive"] },
-                  then: { $eq: ["$dod", ""] },
-                },
-              ],
-              default: "Any",
-            },
-          },
-        },
-      },
-      {
-        $project: {
-          _id: 0,
-          personId: 1,
-          name: 1,
-          dob: 1,
-          dod: 1,
-          addresses: {
-            $filter: {
-              input: "$addresses",
-              as: "address",
-              cond: {
-                $and: filter_add_cond,
-              },
-            },
-          },
-        },
-      },
-
-      {
-        $lookup: {
-          from: "adds",
-          let: {
-            cart: "$addresses",
-          },
-          pipeline: [
-            add_table_match_cond,
-            {
-              $replaceRoot: {
-                newRoot: {
-                  $mergeObjects: [
-                    "$$ROOT",
+                    { $gte: ["$$address.from", from] },
                     {
-                      $arrayElemAt: [
+                      $and: [
                         {
-                          $filter: {
-                            input: "$$cart",
-                            cond: {
+                          $cond: {
+                            if: {
                               $and: [
-                                { $eq: ["$addressId", "$$this.addressId"] },
+                                { $eq: ["$$address.to", null] },
+                                { $gte: [to, "$$address.from"] },
+                              ],
+                            },
+                            then: {
+                              $cond: {
+                                if: { $lte: [to, formatted_date] },
+                                then: { $lte: ["$$address.to", to] },
+                                else: { $ne: ["$$address.to", null] },
+                              },
+                            },
+                            else: {
+                              $and: [
+                                { $lte: ["$$address.to", to] },
+                                { $ne: ["$$address.to", null] },
                               ],
                             },
                           },
                         },
-                        0,
                       ],
                     },
+                    { $in: ["$$address.addressId", addressIds] },
                   ],
                 },
               },
             },
-          ],
-          as: "addresses",
+          },
         },
-      },
 
-      {
-        $project: {
-          personId: 1,
-          firstName: "$name.first",
-          lastName: "$name.last",
-
-          age: {
-            $dateDiff: {
-              startDate: {
-                $toDate: "$dob",
-              },
-              endDate: {
-                $cond: {
-                  if: {
-                    $ne: ["$dod", ""],
+        {
+          $lookup: {
+            from: "adds",
+            let: {
+              cart: "$addresses",
+            },
+            pipeline: [
+              {
+                $match: {
+                  $expr: {
+                    $in: ["$addressId", "$$cart.addressId"],
                   },
-                  then: {
-                    $toDate: "$dod",
-                  },
-                  else: { $toDate: new Date() },
                 },
               },
-              unit: "year",
-            },
+              {
+                $replaceRoot: {
+                  newRoot: {
+                    $mergeObjects: [
+                      "$$ROOT",
+                      {
+                        $arrayElemAt: [
+                          {
+                            $filter: {
+                              input: "$$cart",
+                              cond: {
+                                $and: [
+                                  { $eq: ["$addressId", "$$this.addressId"] },
+                                ],
+                              },
+                            },
+                          },
+                          0,
+                        ],
+                      },
+                    ],
+                  },
+                },
+              },
+            ],
+            as: "addresses",
           },
+        },
 
-          isAlive: { $cond: ["$dod", false, true] },
-          addresses: {
-            $map: {
-              input: "$addresses",
+        {
+          $project: {
+            personId: 1,
+            firstName: "$name.first",
+            lastName: "$name.last",
 
-              in: {
-                addressId: "$$this.addressId",
-                zipCode: "$$this.zipCode",
-                street: "$$this.street",
-                isCurrent: { $cond: ["$$this.to", false, true] },
-                from: "$$this.from",
-                to: "$$this.to",
+            age: {
+              $dateDiff: {
+                startDate: {
+                  $toDate: "$dob",
+                },
+                endDate: {
+                  $cond: {
+                    if: {
+                      $ne: ["$dod", ""],
+                    },
+                    then: {
+                      $toDate: "$dod",
+                    },
+                    else: { $toDate: new Date() },
+                  },
+                },
+                unit: "year",
+              },
+            },
+
+            isAlive: { $cond: ["$dod", false, true] },
+            addresses: {
+              $map: {
+                input: "$addresses",
+
+                in: {
+                  addressId: "$$this.addressId",
+                  zipCode: "$$this.zipCode",
+                  street: "$$this.street",
+                  isCurrent: { $cond: ["$$this.to", false, true] },
+                },
               },
             },
           },
         },
-      },
-    ]);
+      ]);
+    } else {
+      data = await adds.aggregate([
+        {
+          $match: {
+            zipCode: { $in: zipCodes },
+          },
+        },
+        {
+          $lookup: {
+            from: "persons",
+            let: { add: "$addressId" },
+            pipeline: [
+              {
+                $match: {
+                  $expr: {
+                    $in: ["$$add", "$addresses.addressId"],
+                  },
+                },
+              },
+            ],
+            as: "temp",
+          },
+        },
+        { $unwind: "$temp" },
+
+        {
+          $match: {
+            $expr: {
+              $switch: {
+                branches: [
+                  {
+                    case: { $eq: [status, "@dead"] },
+                    then: { $ne: ["$temp.dod", ""] },
+                  },
+                  {
+                    case: { $eq: [status, "@alive"] },
+                    then: { $eq: ["$temp.dod", ""] },
+                  },
+                ],
+                default: "Any",
+              },
+            },
+          },
+        },
+        {
+          $project: {
+            personId: "$temp.personId",
+            firstName: "$temp.name.first",
+            lastName: "$temp.name.last",
+            zipCode: 1,
+            street: 1,
+
+            age: {
+              $dateDiff: {
+                startDate: {
+                  $toDate: "$temp.dob",
+                },
+                endDate: {
+                  $cond: {
+                    if: {
+                      $ne: ["$temp.dod", ""],
+                    },
+                    then: {
+                      $toDate: "$temp.dod",
+                    },
+                    else: { $toDate: new Date() },
+                  },
+                },
+                unit: "year",
+              },
+            },
+
+            isAlive: { $cond: ["$temp.dod", false, true] },
+            addresses: {
+              $filter: {
+                input: "$temp.addresses",
+                as: "addresses",
+                cond: {
+                  $and: [
+                    { $eq: ["$$address.addressId", "$addressId"] },
+                    { $gte: ["$$address.from", from] },
+                    {
+                      $and: [
+                        {
+                          $cond: {
+                            if: {
+                              $and: [
+                                { $eq: ["$$address.to", null] },
+                                { $gte: [to, "$$address.from"] },
+                              ],
+                            },
+                            then: {
+                              $cond: {
+                                if: { $lte: [to, formatted_date] },
+                                then: { $lte: ["$$address.to", to] },
+                                else: { $ne: ["$$address.to", null] },
+                              },
+                            },
+                            else: {
+                              $and: [
+                                { $lte: ["$$address.to", to] },
+                                { $ne: ["$$address.to", null] },
+                              ],
+                            },
+                          },
+                        },
+                      ],
+                    },
+                  ],
+                },
+                as: "address",
+              },
+            },
+          },
+        },
+
+        {
+          $project: {
+            _id: 0,
+            personId: 1,
+            firstName: 1,
+            lastName: 1,
+            age: 1,
+            isAlive: 1,
+
+            addresses: {
+              $map: {
+                input: "$addresses",
+
+                in: {
+                  addressId: "$$this.addressId",
+                  zipCode: "$zipCode",
+                  street: "$street",
+                  isCurrent: { $cond: ["$$this.to", false, true] },
+                },
+              },
+            },
+          },
+        },
+        {
+          $group: {
+            _id: {
+              personId: "$personId",
+              firstName: "$firstName",
+              lastName: "$lastName",
+              age: "$age",
+              isAlive: "$isAlive",
+            },
+            addresses: { $push: { $arrayElemAt: ["$addresses", 0] } },
+          },
+        },
+        {
+          $project: {
+            _id: 0,
+            addresses: 1,
+            personId: "$_id.personId",
+            firstName: "$_id.firstName",
+            lastName: "$_id.lastName",
+            age: "$_id.age",
+            isAlive: "$_id.isAlive",
+          },
+        },
+      ]);
+    }
 
 
     res.json(data);
