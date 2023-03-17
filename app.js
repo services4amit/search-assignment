@@ -48,15 +48,15 @@ var mongoconnect = async () => {
 mongoconnect();
 
 // Create collection of Model
-// person.createCollection().then(function (collection) {
-//   console.log("Collection is created!");
-// });
-// address.createCollection().then(function (collection) {
-//   console.log("Collection is created!");
-// });
+persons.createCollection().then(function (collection) {
+  console.log("Collection is created!");
+});
+adds.createCollection().then(function (collection) {
+  console.log("Collection is created!");
+});
 
-// persons.insertMany(person_data);
-// addresses.insertMany(address_data);
+persons.insertMany(person_data);
+adds.insertMany(address_data);
 
 app.use(json());
 app.use("/search", async (req, res) => {
