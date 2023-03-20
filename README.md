@@ -7,7 +7,13 @@ Database:  MongoDB. We can create indexes on the fields that will be used for se
 We can use pagination to limit the number of results returned by the API endpoint. 
 We can use the skip and limit parameters to paginate the results.
 
-For the search assignment 2 collections are created:
+
+Time Taken:
+Code setup 10 minutes.
+
+Analysis and design for backend: 1 hour.
+
+Writing Query: 4 hour
 
 --adds
 
